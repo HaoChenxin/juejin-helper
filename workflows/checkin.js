@@ -219,8 +219,8 @@ class MockVisitTask extends Task {
       }
       await utils.wait(utils.randomRangeNumber(2000, 5000));
       await browser.close();
-    } catch {
-      console.log("浏览器API异常");
+    } catch (error){
+      console.log("浏览器API异常", error);
     }
     console.log("-------------------------");
   }
