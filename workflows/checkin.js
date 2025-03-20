@@ -212,7 +212,7 @@ class MockVisitTask extends Task {
       }
       await utils.wait(utils.randomRangeNumber(2000, 5000));
       try {
-        await browser.visitPage("/user/center/signin");
+        await browser.visitPage("/user/center/signin?avatar_menu");
         console.log("掘金每日签到：页面访问成功");
       } catch (e) {
         console.log("掘金每日签到：页面访问失败");
