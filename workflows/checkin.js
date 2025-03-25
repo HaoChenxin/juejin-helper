@@ -256,6 +256,12 @@ class CheckIn {
 
     await this.mockVisitTask.run();
     await this.sdkTask.run();
+    
+    try {
+      
+    } catch (error) {
+      
+    }
     console.log(`运行 ${this.growthTask.taskName}`);
     await this.growthTask.run();
     console.log(`运行 ${this.dipLuckyTask.taskName}`);
@@ -319,18 +325,53 @@ ${this.lotteriesTask.lotteryCount > 0 ? "==============\n" + drawLotteryHistory 
 }
 
 async function run(args) {
+  // const cookies = utils.getUsersCookie(env);
+  // let messageList = [];
+  // for (let cookie of cookies) {
+  //   const checkin = new CheckIn(cookie);
+
+  //   await utils.wait(utils.randomRangeNumber(1000, 5000)); // 初始等待1-5s
+  //   await checkin.run(); // 执行
+
+  //   const content = checkin.toString();
+  //   console.log(content); // 打印结果
+
+  //   messageList.push(content);
+  // }
+
   const cookies = utils.getUsersCookie(env);
   let messageList = [];
+  let errorCount = 0; // 记录失败次数
+
+  // 重试逻辑函数
+  const runWithRetry = async (checkin, maxRetries = 3) => {
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        await utils.wait(utils.randomRangeNumber(1000, 5000)); // 初始等待1-5s
+        await checkin.run(); // 执行签到
+        return checkin.toString(); // 成功返回结果
+      } catch (error) {
+        console.error(`签到失败: ${error.message}, 第 ${attempt + 1} 次尝试`);
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw new Error(`签到在 ${maxRetries} 次尝试后失败`);
+        }
+      }
+    }
+  };
+
   for (let cookie of cookies) {
     const checkin = new CheckIn(cookie);
 
-    await utils.wait(utils.randomRangeNumber(1000, 5000)); // 初始等待1-5s
-    await checkin.run(); // 执行
-
-    const content = checkin.toString();
-    console.log(content); // 打印结果
-
-    messageList.push(content);
+    try {
+      const content = await runWithRetry(checkin); // 调用重试逻辑
+      console.log(content); // 打印结果
+      messageList.push(content);
+    } catch (error) {
+      console.error(`用户签到失败: ${error.message}`);
+      errorCount++;
+    }
   }
 
   const message = messageList.join(`\n${"-".repeat(15)}\n`);
